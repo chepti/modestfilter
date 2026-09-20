@@ -2,7 +2,7 @@ import * as tf from '@tensorflow/tfjs'
 // מייבאים מ-nsfwjs/core ולא מ-nsfwjs: נקודת הכניסה הראשית גוררת שלושה מודלים
 // ארוזים בתוך החבילה (כ-35MB) שאין בהם צורך — אנחנו טוענים מודל משלנו מהדיסק.
 import { load as loadNsfw, type NSFWJS } from 'nsfwjs/core'
-import type { ClassifyResult, NsfwClassName, OffscreenMessage, Prediction } from '../shared/types'
+import type { InferResult, OffscreenMessage, Prediction } from '../shared/types'
 
 /**
  * מסמך ה-offscreen הוא המקום היחיד בתוסף שיש בו DOM + WebGL, ולכן כאן רץ המודל.
@@ -54,20 +54,6 @@ function releaseSlot(): void {
   waiting.shift()?.()
 }
 
-function scoreOf(
-  predictions: Prediction[],
-  weights: { sexyWeight: number; drawingWeight: number },
-): number {
-  const by = (name: NsfwClassName) =>
-    predictions.find((p) => p.className === name)?.probability ?? 0
-  const raw =
-    by('Porn') +
-    by('Hentai') +
-    by('Sexy') * weights.sexyWeight +
-    by('Drawing') * weights.drawingWeight
-  return Math.min(1, raw)
-}
-
 async function fetchBitmap(url: string): Promise<ImageBitmap> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
@@ -84,7 +70,7 @@ async function fetchBitmap(url: string): Promise<ImageBitmap> {
   }
 }
 
-async function classify(message: Extract<OffscreenMessage, { type: 'classify' }>): Promise<ClassifyResult> {
+async function classify(message: Extract<OffscreenMessage, { type: 'classify' }>): Promise<InferResult> {
   await acquireSlot()
   let bitmap: ImageBitmap | null = null
   let tensor: tf.Tensor3D | null = null
@@ -92,15 +78,9 @@ async function classify(message: Extract<OffscreenMessage, { type: 'classify' }>
     const model = await getModel()
     bitmap = await fetchBitmap(message.url)
     tensor = tf.browser.fromPixels(bitmap)
-    const predictions = (await model.classify(tensor)) as Prediction[]
-    const score = scoreOf(predictions, message.settings)
-    return {
-      verdict: score >= message.settings.threshold ? 'blocked' : 'safe',
-      score,
-      predictions,
-    }
+    return { predictions: (await model.classify(tensor)) as Prediction[] }
   } catch (error) {
-    return { verdict: 'error', score: 0, reason: String(error) }
+    return { error: String(error) }
   } finally {
     tensor?.dispose()
     bitmap?.close()

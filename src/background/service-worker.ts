@@ -1,6 +1,9 @@
 import { bumpStats, getSettings, getStats } from '../shared/settings'
+import { scoreOf } from '../shared/score'
 import type {
   ClassifyResult,
+  InferResult,
+  Prediction,
   RuntimeRequest,
   StatusResponse,
 } from '../shared/types'
@@ -14,18 +17,19 @@ import type {
 const OFFSCREEN_PATH = 'offscreen/offscreen.html'
 const CACHE_LIMIT = 800
 
-const cache = new Map<string, ClassifyResult>()
+// המטמון שומר את תחזיות המודל, לא את פסק הדין: שינוי רמת ההקפדה משפיע מיד
+// גם על תמונות שכבר נבדקו, בלי לסווג אותן שוב.
+const cache = new Map<string, Prediction[]>()
 let modelError: string | null = null
 let modelReady = false
 let pending = 0
 
-function remember(url: string, result: ClassifyResult): void {
-  if (result.verdict === 'error') return
+function remember(url: string, predictions: Prediction[]): void {
   if (cache.size >= CACHE_LIMIT) {
     const oldest = cache.keys().next().value
     if (oldest !== undefined) cache.delete(oldest)
   }
-  cache.set(url, result)
+  cache.set(url, predictions)
 }
 
 let creating: Promise<void> | null = null
@@ -51,42 +55,44 @@ async function ensureOffscreen(): Promise<void> {
 }
 
 async function classifyUrl(url: string): Promise<ClassifyResult> {
-  const cached = cache.get(url)
-  if (cached) return cached
-
   const settings = await getSettings()
+
+  const decide = (predictions: Prediction[]): ClassifyResult => {
+    const score = scoreOf(predictions, settings)
+    return { verdict: score >= settings.threshold ? 'blocked' : 'safe', score, predictions }
+  }
+
+  const cached = cache.get(url)
+  if (cached) return decide(cached)
+
   await ensureOffscreen()
 
   pending += 1
   try {
-    const result = (await chrome.runtime.sendMessage({
+    const inferred = (await chrome.runtime.sendMessage({
       target: 'offscreen',
       type: 'classify',
       url,
-      settings: {
-        threshold: settings.threshold,
-        sexyWeight: settings.sexyWeight,
-        drawingWeight: settings.drawingWeight,
-      },
-    })) as ClassifyResult
+    })) as InferResult
 
-    if (result.verdict === 'error') {
-      modelError = result.reason ?? 'שגיאה לא ידועה'
-    } else {
-      modelReady = true
-      modelError = null
+    if (!inferred?.predictions) {
+      modelError = inferred?.error ?? 'שגיאה לא ידועה'
+      return { verdict: 'error', score: 0, reason: modelError }
     }
 
-    remember(url, result)
+    modelReady = true
+    modelError = null
+    remember(url, inferred.predictions)
+
+    const result = decide(inferred.predictions)
     void bumpStats({
       imagesScanned: 1,
       imagesBlocked: result.verdict === 'blocked' ? 1 : 0,
     })
     return result
   } catch (error) {
-    const failure: ClassifyResult = { verdict: 'error', score: 0, reason: String(error) }
-    modelError = failure.reason ?? null
-    return failure
+    modelError = String(error)
+    return { verdict: 'error', score: 0, reason: modelError }
   } finally {
     pending -= 1
   }

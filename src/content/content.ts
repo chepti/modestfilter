@@ -163,6 +163,22 @@ function markSafe(el: Element): void {
   el.setAttribute(STATE, 'safe')
 }
 
+/** מצב אבחון: מדפיס לקונסול מה המודל החזיר, כדי להבין למה תמונה עברה או נחסמה. */
+function report(url: string, result: ClassifyResult | null, threshold: number): void {
+  if (!settings?.debug) return
+  if (!result) {
+    console.warn('[מסנן תוכן] אין תשובה מהתוסף עבור', url)
+    return
+  }
+  const parts = result.predictions
+    ?.map((p) => `${p.className}=${p.probability.toFixed(3)}`)
+    .join('  ')
+  console.log(
+    `[מסנן תוכן] ${result.verdict} | ציון ${result.score.toFixed(3)} מול סף ${threshold.toFixed(2)}` +
+      `${parts ? ` | ${parts}` : ''}${result.reason ? ` | ${result.reason}` : ''}\n${url}`,
+  )
+}
+
 function blockImage(img: HTMLImageElement): void {
   const original = img.currentSrc || img.src
   img.setAttribute(STATE, 'blocked')
@@ -202,6 +218,7 @@ async function inspect(img: HTMLImageElement): Promise<void> {
   try {
     const result = await send<ClassifyResult>({ type: 'classify', url })
     const verdict = result?.verdict ?? 'error'
+    report(url, result, settings.threshold)
     if (verdict === 'blocked' || (verdict === 'error' && settings.blockOnError)) blockImage(img)
     else markSafe(img)
   } finally {
@@ -277,6 +294,7 @@ async function inspectBackground(el: HTMLElement): Promise<void> {
   try {
     const result = await send<ClassifyResult>({ type: 'classify', url })
     const verdict = result?.verdict ?? 'error'
+    report(url, result, settings.threshold)
     if (verdict === 'blocked' || (verdict === 'error' && settings.blockOnError)) {
       el.setAttribute(STATE, 'blocked-bg')
     } else {
@@ -388,6 +406,13 @@ async function init(): Promise<void> {
   }
 
   keywordRegex = buildKeywordRegex(settings.extraKeywords)
+
+  if (settings.debug) {
+    console.log(
+      `[מסנן תוכן] פעיל על ${host} | סף ${settings.threshold.toFixed(2)} | ` +
+        `משקל Sexy ${settings.sexyWeight} | גודל מזערי ${settings.minImageSize}px`,
+    )
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startObserving, { once: true })

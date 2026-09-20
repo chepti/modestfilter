@@ -39,6 +39,8 @@ export interface Settings {
   blockedDomains: string[]
   /** דומיינים שבהם התוסף כבוי לגמרי. */
   allowedDomains: string[]
+  /** מצב אבחון: רישום כל תוצאת סיווג לקונסול של העמוד. */
+  debug: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -54,6 +56,7 @@ export const DEFAULT_SETTINGS: Settings = {
   extraKeywords: [],
   blockedDomains: [],
   allowedDomains: [],
+  debug: false,
 }
 
 export interface Stats {
@@ -104,7 +107,12 @@ export interface OffscreenClassifyMessage {
   target: 'offscreen'
   type: 'classify'
   url: string
-  settings: Pick<Settings, 'threshold' | 'sexyWeight' | 'drawingWeight'>
+}
+
+/** ה-offscreen מחזיר תחזיות גולמיות בלבד; ההחלטה מתקבלת ב-service worker. */
+export interface InferResult {
+  predictions?: Prediction[]
+  error?: string
 }
 
 export interface OffscreenPingMessage {

@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS, type Settings } from '../shared/types'
 const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
 
 const fields = {
-  threshold: $<HTMLInputElement>('threshold'),
+  strictness: $<HTMLInputElement>('strictness'),
   sexyWeight: $<HTMLInputElement>('sexyWeight'),
   drawingWeight: $<HTMLInputElement>('drawingWeight'),
   minImageSize: $<HTMLInputElement>('minImageSize'),
@@ -16,24 +16,33 @@ const fields = {
   extraKeywords: $<HTMLTextAreaElement>('extraKeywords'),
   blockedDomains: $<HTMLTextAreaElement>('blockedDomains'),
   allowedDomains: $<HTMLTextAreaElement>('allowedDomains'),
+  debug: $<HTMLInputElement>('debug'),
 }
 
-/** הסבר מילולי לסף — מספר יבש לא אומר הרבה למשתמש. */
-function thresholdWording(value: number): string {
-  if (value <= 0.3) return 'מחמיר מאוד — יחסום גם תמונות גבוליות, וגם כמה תמימות.'
-  if (value <= 0.55) return 'מאוזן — ההמלצה לרוב המשתמשים.'
+/**
+ * המחוון מציג "רמת הקפדה" — גבוה יותר = מחמיר יותר — בעוד שבהגדרות נשמר סף
+ * חסימה, שבו גבוה יותר = מקל יותר. השניים הפוכים, ולכן ההמרה כאן.
+ */
+const strictnessToThreshold = (percent: number): number => 1 - percent / 100
+const thresholdToStrictness = (threshold: number): number => Math.round((1 - threshold) * 100)
+
+/** הסבר מילולי — מספר יבש לא אומר הרבה למשתמש. */
+function strictnessWording(percent: number): string {
+  if (percent >= 80) return 'מחמיר מאוד — יחסום גם תמונות גבוליות, ולעיתים גם תמימות.'
+  if (percent >= 45) return 'מאוזן — ההמלצה לרוב המשתמשים.'
   return 'מקל — יחסום רק תוכן מפורש בבירור.'
 }
 
 function syncRangeOutputs(): void {
-  $('threshold-out').textContent = Number(fields.threshold.value).toFixed(2)
+  const percent = Number(fields.strictness.value)
+  $('strictness-out').textContent = `${percent}%`
   $('sexyWeight-out').textContent = Number(fields.sexyWeight.value).toFixed(1)
   $('drawingWeight-out').textContent = Number(fields.drawingWeight.value).toFixed(1)
-  $('threshold-hint').textContent = thresholdWording(Number(fields.threshold.value))
+  $('strictness-hint').textContent = strictnessWording(percent)
 }
 
 function fill(settings: Settings): void {
-  fields.threshold.value = String(settings.threshold)
+  fields.strictness.value = String(thresholdToStrictness(settings.threshold))
   fields.sexyWeight.value = String(settings.sexyWeight)
   fields.drawingWeight.value = String(settings.drawingWeight)
   fields.minImageSize.value = String(settings.minImageSize)
@@ -44,12 +53,13 @@ function fill(settings: Settings): void {
   fields.extraKeywords.value = settings.extraKeywords.join('\n')
   fields.blockedDomains.value = settings.blockedDomains.join('\n')
   fields.allowedDomains.value = settings.allowedDomains.join('\n')
+  fields.debug.checked = settings.debug
   syncRangeOutputs()
 }
 
 function collect(): Partial<Settings> {
   return {
-    threshold: Number(fields.threshold.value),
+    threshold: strictnessToThreshold(Number(fields.strictness.value)),
     sexyWeight: Number(fields.sexyWeight.value),
     drawingWeight: Number(fields.drawingWeight.value),
     minImageSize: Math.max(16, Number(fields.minImageSize.value) || DEFAULT_SETTINGS.minImageSize),
@@ -60,6 +70,7 @@ function collect(): Partial<Settings> {
     extraKeywords: parseList(fields.extraKeywords.value),
     blockedDomains: parseList(fields.blockedDomains.value),
     allowedDomains: parseList(fields.allowedDomains.value),
+    debug: fields.debug.checked,
   }
 }
 
@@ -75,7 +86,7 @@ async function showStats(): Promise<void> {
     `${stats.imagesScanned} תמונות נבדקו, ${stats.imagesBlocked} הוסתרו, ${stats.pagesBlocked} עמודים נחסמו.`
 }
 
-for (const input of [fields.threshold, fields.sexyWeight, fields.drawingWeight]) {
+for (const input of [fields.strictness, fields.sexyWeight, fields.drawingWeight]) {
   input.addEventListener('input', syncRangeOutputs)
 }
 

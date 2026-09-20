@@ -32,13 +32,13 @@
         <label class="field">
           <span class="label-row">
             רמת הקפדה
-            <span class="hint" title="ככל שהמחוון ימינה, כך נדרשת ודאות גבוהה יותר כדי לחסום">?</span>
+            <span class="hint" title="ערך גבוה = מחמיר יותר, יחסום גם תמונות גבוליות">?</span>
           </span>
           <div class="range-row">
-            <input type="range" id="threshold" min="0.15" max="0.9" step="0.05" />
-            <output id="threshold-out"></output>
+            <input type="range" id="strictness" min="10" max="95" step="5" />
+            <output id="strictness-out"></output>
           </div>
-          <span class="hint" id="threshold-hint"></span>
+          <span class="hint" id="strictness-hint"></span>
         </label>
 
         <div class="grid2">
@@ -154,6 +154,17 @@
           נתוני שימוש
         </h2>
         <p id="stats-line" class="hint stats-line"></p>
+
+        <div class="toggle-row">
+          <span class="text">
+            <strong>מצב אבחון</strong>
+            <span>רישום כל תוצאת סיווג לקונסול של העמוד (F12), כדי לבדוק למה תמונה לא נחסמה.</span>
+          </span>
+          <label class="switch">
+            <input type="checkbox" id="debug" /><span class="track"></span>
+          </label>
+        </div>
+
         <button class="btn btn-ghost" id="reset-stats" type="button" title="איפוס המונים בלבד. ההגדרות נשמרות">
           איפוס המונים
         </button>

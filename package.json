@@ -14,6 +14,7 @@
     "devtest": "vite build --config vite.devtest.config.ts --outDir ../../dist-test --emptyOutDir",
     "devtest:serve": "npm run devtest && node scripts/serve-devtest.mjs",
     "typecheck": "tsc --noEmit",
+    "test:keywords": "node scripts/test-keywords.mjs",
     "icons": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icons.ps1",
     "zip": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-zip.ps1"
   },

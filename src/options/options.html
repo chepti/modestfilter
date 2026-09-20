@@ -100,6 +100,42 @@
       <section class="card">
         <h2>
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m6.5 6.5 11 11" />
+            <path d="m21 21-1-1" />
+            <path d="m3 3 1 1" />
+            <path d="m18 22 4-4" />
+            <path d="m2 6 4-4" />
+            <path d="m3 10 7-7" />
+          </svg>
+          סינון לפי כותרת המוצר
+        </h2>
+
+        <div class="toggle-row">
+          <span class="text">
+            <strong>חסימת תמונה לפי הטקסט שלידה</strong>
+            <span>נבדקים ה-alt של התמונה, כתובת הקישור וכותרת כרטיס המוצר.</span>
+          </span>
+          <label class="switch">
+            <input type="checkbox" id="contextFilterEnabled" /><span class="track"></span>
+          </label>
+        </div>
+
+        <p class="hint" style="margin: 0 0 16px">
+          בחנויות אונליין זה מדויק בהרבה ממודל הראייה: "בגד ים" בכותרת הוא סימן ודאי,
+          והחסימה מיידית בלי להמתין לסיווג התמונה. הרשימה המובנית כוללת פריטי ים,
+          הלבשה תחתונה וגזרות חושפניות, בעברית ובאנגלית.
+        </p>
+
+        <label class="field">
+          <span class="label-row">פריטי לבוש נוספים לחסימה</span>
+          <textarea id="extraGarmentKeywords" placeholder="שם פריט בכל שורה" spellcheck="false"></textarea>
+          <span class="hint">עדיף צירוף על פני מילה בודדת — "חצאית מיני" ולא "מיני".</span>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2" />
             <line x1="9" y1="20" x2="15" y2="20" />
             <line x1="12" y1="4" x2="12" y2="20" />

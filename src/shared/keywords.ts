@@ -74,6 +74,86 @@ export const ENGLISH_KEYWORDS: string[] = [
   'bdsm',
 ]
 
+/**
+ * ביטויים שמתארים פריט לבוש לא צנוע. אלה אינם מילים פוגעניות ולכן אינם חוסמים
+ * עמוד שלם — הם משמשים לחסימת תמונה בודדת לפי הטקסט שלידה (כותרת מוצר, alt,
+ * כתובת הקישור). בחנות אונליין זה מדויק בהרבה ממודל הראייה, ופועל מיד בלי
+ * להמתין לסיווג.
+ *
+ * "מיני" לבדה לא נכללת בכוונה — היא מופיעה בעברית בהקשרים תמימים ("כל מיני").
+ * מאותה סיבה מועדפים צירופים על פני מילים בודדות.
+ */
+export const GARMENT_KEYWORDS: string[] = [
+  // ים וחוף
+  'בגד ים',
+  'בגדי ים',
+  'ביקיני',
+  'בקיני',
+  'מונוקיני',
+  'טנקיני',
+  'חליפת ים',
+  'כיסוי חוף',
+  'בגדי חוף',
+  'סרונג',
+  // הלבשה תחתונה
+  'הלבשה תחתונה',
+  'לבני נשים',
+  'תחתונים',
+  'חזייה',
+  'חזיות',
+  'בראלט',
+  'בייבידול',
+  'לינגרי',
+  "לינג'רי",
+  'מחוך',
+  'בגד גוף',
+  'גרבי רשת',
+  'ביריות',
+  // גזרות חושפניות
+  'חצאית מיני',
+  'שמלת מיני',
+  'שמלה שקופה',
+  'גב חשוף',
+  'כתפיים חשופות',
+  'מחשוף עמוק',
+  'טופ קצר',
+  'בטן חשופה',
+  'שקוף למחצה',
+
+  'swimsuit',
+  'swimwear',
+  'bikini',
+  'monokini',
+  'tankini',
+  'beachwear',
+  'beach cover',
+  'cover-up',
+  'sarong',
+  'lingerie',
+  'underwear',
+  'panties',
+  'thong',
+  'bra',
+  'bralette',
+  'babydoll',
+  'corset',
+  'bodysuit',
+  'garter',
+  'fishnet',
+  'nightgown',
+  'negligee',
+  'cleavage',
+  'mini skirt',
+  'miniskirt',
+  'crop top',
+  'see-through',
+  'sheer dress',
+  'backless',
+  'strapless',
+  'off-shoulder',
+  'low cut',
+]
+
 /** דומיינים שנחסמים תמיד, עוד לפני שהעמוד נטען לגמרי. */
 export const BUILTIN_BLOCKED_DOMAINS: string[] = [
   'pornhub.com',
@@ -107,19 +187,30 @@ function isHebrew(word: string): boolean {
  * בעברית מותר תחיליות (ב, ה, ו, ל, מ, ש, כ) אבל לא סיומת — כך "פורנו" נתפס גם
  * כ"הפורנו", ובאנגלית נדרש גבול מילה מלא כדי ש-"sexy" לא יתפוס את "essex".
  */
-export function buildKeywordRegex(extra: string[] = []): RegExp {
-  const words = [...HEBREW_KEYWORDS, ...ENGLISH_KEYWORDS, ...extra]
+function compile(words: string[], allowSuffix: boolean): RegExp {
+  const patterns = words
     .map((word) => word.trim())
     .filter(Boolean)
-
-  const patterns = words.map((word) => {
-    const escaped = escapeRegExp(word)
-    return isHebrew(word)
-      ? `(?<![${HEBREW_LETTER}])[\\u05d1\\u05d4\\u05d5\\u05dc\\u05de\\u05e9\\u05db]{0,2}${escaped}(?![${HEBREW_LETTER}])`
-      : `\\b${escaped}\\b`
-  })
-
+    .map((word) => {
+      const escaped = escapeRegExp(word)
+      if (!isHebrew(word)) return `\\b${escaped}${allowSuffix ? 's?\\b' : '\\b'}`
+      const prefix = `(?<![${HEBREW_LETTER}])[\\u05d1\\u05d4\\u05d5\\u05dc\\u05de\\u05e9\\u05db]{0,2}`
+      return allowSuffix ? `${prefix}${escaped}` : `${prefix}${escaped}(?![${HEBREW_LETTER}])`
+    })
   return new RegExp(patterns.join('|'), 'gi')
+}
+
+export function buildKeywordRegex(extra: string[] = []): RegExp {
+  return compile([...HEBREW_KEYWORDS, ...ENGLISH_KEYWORDS, ...extra], false)
+}
+
+/**
+ * ביטוי לזיהוי פריטי לבוש בטקסט שליד תמונה.
+ * כאן מותרות סיומות — "ביקיני" צריך לתפוס גם "ביקיניים", ו-"swimsuit" את
+ * "swimsuits" — כי מדובר בשמות מוצר ולא במילים פוגעניות שצריך לזהות במדויק.
+ */
+export function buildGarmentRegex(extra: string[] = []): RegExp {
+  return compile([...GARMENT_KEYWORDS, ...extra], true)
 }
 
 /** סופר כמה התאמות שונות יש בטקסט. מילה שחוזרת נספרת פעם אחת. */

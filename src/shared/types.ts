@@ -37,6 +37,10 @@ export interface Settings {
   textHitsToBlock: number
   /** מילים נוספות מעבר לרשימה המובנית, מופרדות בשורות. */
   extraKeywords: string[]
+  /** חסימת תמונה לפי הטקסט שלידה — כותרת מוצר, alt, כתובת הקישור. */
+  contextFilterEnabled: boolean
+  /** פריטי לבוש נוספים לרשימת הסינון לפי הקשר. */
+  extraGarmentKeywords: string[]
   /** דומיינים שנחסמים מיד, בלי בדיקה. */
   blockedDomains: string[]
   /** דומיינים שבהם התוסף כבוי לגמרי. */
@@ -57,6 +61,8 @@ export const DEFAULT_SETTINGS: Settings = {
   textFilterEnabled: true,
   textHitsToBlock: 4,
   extraKeywords: [],
+  contextFilterEnabled: true,
+  extraGarmentKeywords: [],
   blockedDomains: [],
   allowedDomains: [],
   debug: false,

@@ -1,4 +1,9 @@
-import { BUILTIN_BLOCKED_DOMAINS, buildKeywordRegex, countKeywordHits } from '../shared/keywords'
+import {
+  BUILTIN_BLOCKED_DOMAINS,
+  buildGarmentRegex,
+  buildKeywordRegex,
+  countKeywordHits,
+} from '../shared/keywords'
 import { getSettings, hostMatches } from '../shared/settings'
 import type { ClassifyResult, Settings } from '../shared/types'
 
@@ -28,6 +33,7 @@ const PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(
 
 let settings: Settings | null = null
 let keywordRegex: RegExp | null = null
+let garmentRegex: RegExp | null = null
 let pageBlocked = false
 let inFlight = 0
 const queue: Array<() => void> = []
@@ -244,9 +250,61 @@ function isScannableUrl(url: string): boolean {
   return /^(https?:|data:image\/)/i.test(url)
 }
 
+const CONTEXT_CHARS = 400
+
+/**
+ * הטקסט שמתאר את התמונה: ה-alt שלה, כותרת הקישור העוטף, כתובת הקישור (שבחנויות
+ * מכילה את שם המוצר), והטקסט של כרטיס המוצר שסביבה. מטפסים כמה רמות למעלה עד
+ * שנאסף מספיק טקסט, כדי לא לסרוק את כל העמוד עבור תמונה אחת.
+ */
+function imageContext(img: HTMLImageElement): string {
+  const parts = [img.alt, img.title, img.getAttribute('aria-label') ?? '']
+
+  const link = img.closest('a')
+  if (link) {
+    parts.push(link.title, link.getAttribute('aria-label') ?? '')
+    try {
+      // שם המוצר מופיע ב-slug של הכתובת ולעיתים הוא הרמז היחיד.
+      parts.push(decodeURIComponent(new URL(link.href, location.href).pathname).replace(/[-_/]/g, ' '))
+    } catch {
+      /* כתובת לא תקינה — פשוט מדלגים */
+    }
+  }
+
+  let node: HTMLElement | null = img.parentElement
+  for (let depth = 0; node && depth < 5; depth += 1) {
+    const text = node.textContent?.trim() ?? ''
+    // טקסט ארוך מדי כבר אינו כרטיס מוצר בודד אלא מכל של כמה מוצרים. לקחת אותו
+    // היה גורם לפריט לא צנוע אחד לחסום את כל התמונות סביבו.
+    if (text.length > 300) break
+    if (text) parts.push(text)
+    if (text.length >= 40) break
+    node = node.parentElement
+  }
+
+  return parts.filter(Boolean).join(' ').slice(0, CONTEXT_CHARS)
+}
+
+/** מחזיר את הביטוי שנתפס בטקסט שליד התמונה, או null. */
+function garmentHit(img: HTMLImageElement): string | null {
+  if (!settings?.contextFilterEnabled || !garmentRegex) return null
+  garmentRegex.lastIndex = 0
+  return garmentRegex.exec(imageContext(img))?.[0] ?? null
+}
+
 async function inspect(img: HTMLImageElement): Promise<void> {
   if (!settings || img.hasAttribute(STATE) || img.dataset.mfQueued === '1') return
   img.dataset.mfQueued = '1'
+
+  // סינון לפי הקשר קודם לסיווג: הוא מיידי, מדויק יותר בחנויות, וחוסך קריאה למודל.
+  const hit = garmentHit(img)
+  if (hit) {
+    if (settings.debug) console.log(`[מסנן תוכן] נחסם לפי הטקסט "${hit}"\n${img.currentSrc || img.src}`)
+    blockImage(img)
+    void send({ type: 'stats', imagesScanned: 1, imagesBlocked: 1 })
+    delete img.dataset.mfQueued
+    return
+  }
 
   const url = img.currentSrc || img.src
   const big =
@@ -482,6 +540,7 @@ async function init(): Promise<void> {
   }
 
   keywordRegex = buildKeywordRegex(settings.extraKeywords)
+  garmentRegex = buildGarmentRegex(settings.extraGarmentKeywords)
 
   if (settings.debug) {
     console.log(

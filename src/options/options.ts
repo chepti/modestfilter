@@ -15,6 +15,8 @@ const fields = {
   textFilterEnabled: $<HTMLInputElement>('textFilterEnabled'),
   textHitsToBlock: $<HTMLInputElement>('textHitsToBlock'),
   extraKeywords: $<HTMLTextAreaElement>('extraKeywords'),
+  contextFilterEnabled: $<HTMLInputElement>('contextFilterEnabled'),
+  extraGarmentKeywords: $<HTMLTextAreaElement>('extraGarmentKeywords'),
   blockedDomains: $<HTMLTextAreaElement>('blockedDomains'),
   allowedDomains: $<HTMLTextAreaElement>('allowedDomains'),
   debug: $<HTMLInputElement>('debug'),
@@ -53,6 +55,8 @@ function fill(settings: Settings): void {
   fields.textFilterEnabled.checked = settings.textFilterEnabled
   fields.textHitsToBlock.value = String(settings.textHitsToBlock)
   fields.extraKeywords.value = settings.extraKeywords.join('\n')
+  fields.contextFilterEnabled.checked = settings.contextFilterEnabled
+  fields.extraGarmentKeywords.value = settings.extraGarmentKeywords.join('\n')
   fields.blockedDomains.value = settings.blockedDomains.join('\n')
   fields.allowedDomains.value = settings.allowedDomains.join('\n')
   fields.debug.checked = settings.debug
@@ -71,6 +75,8 @@ function collect(): Partial<Settings> {
     textFilterEnabled: fields.textFilterEnabled.checked,
     textHitsToBlock: Math.max(1, Number(fields.textHitsToBlock.value) || DEFAULT_SETTINGS.textHitsToBlock),
     extraKeywords: parseList(fields.extraKeywords.value),
+    contextFilterEnabled: fields.contextFilterEnabled.checked,
+    extraGarmentKeywords: parseList(fields.extraGarmentKeywords.value),
     blockedDomains: parseList(fields.blockedDomains.value),
     allowedDomains: parseList(fields.allowedDomains.value),
     debug: fields.debug.checked,

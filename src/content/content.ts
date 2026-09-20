@@ -38,11 +38,54 @@ function root(): HTMLElement {
   return document.documentElement
 }
 
-/** מסתיר תמונות מיד, עוד לפני שההגדרות נטענו — אחרת יש הבזק של תוכן לא מסונן. */
-root().classList.add('mf-hide-pending')
+/**
+ * מטפלים בתמונות מיד, עוד לפני שההגדרות נטענו — אחרת יש הבזק של תוכן לא מסונן.
+ * מתחילים דווקא בהסתרה מלאה, שהיא המצב המחמיר; אם המשתמש בחר טשטוש, מחליפים
+ * ברגע שההגדרות מגיעות (כמה אלפיות שנייה).
+ */
+root().classList.add('mf-pending-hidden')
+
+function setPendingStyle(style: 'blur' | 'hidden'): void {
+  root().classList.toggle('mf-pending-blur', style === 'blur')
+  root().classList.toggle('mf-pending-hidden', style === 'hidden')
+}
+
+/**
+ * גיליון הסגנונות של התוסף מוזרק למסמך, אבל לא נכנס פנימה ל-shadow roots.
+ * מזריקים לשם עותק שמסתמך על :host-context כדי לקרוא את המחלקה שעל <html>.
+ */
+const PENDING_CSS = `
+:host-context(html.mf-pending-blur) img:not([${STATE}]),
+:host-context(html.mf-pending-blur) [style*='background-image']:not([${STATE}]) {
+  filter: blur(26px) grayscale(1) contrast(0.4) brightness(1.3) !important;
+  clip-path: inset(0) !important;
+}
+:host-context(html.mf-pending-hidden) img:not([${STATE}]),
+:host-context(html.mf-pending-hidden) [style*='background-image']:not([${STATE}]) {
+  visibility: hidden !important;
+}
+img[${STATE}='blocked'] {
+  visibility: visible !important;
+  filter: none !important;
+  object-fit: contain !important;
+  background-color: #eef1f6 !important;
+  border-radius: 10px !important;
+}
+[${STATE}='blocked-bg'] {
+  background-image: none !important;
+  background-color: #eef1f6 !important;
+}`
+
+function applyPendingStyles(scope: ParentNode): void {
+  if (!(scope instanceof ShadowRoot) || scope.querySelector('style[data-mf-style]')) return
+  const style = document.createElement('style')
+  style.setAttribute('data-mf-style', '1')
+  style.textContent = PENDING_CSS
+  scope.appendChild(style)
+}
 
 function stopHidingPending(): void {
-  root().classList.remove('mf-hide-pending')
+  root().classList.remove('mf-pending-hidden', 'mf-pending-blur')
 }
 
 async function slot(): Promise<void> {
@@ -321,12 +364,14 @@ const scanBackgrounds = debounce(() => {
   if (pageBlocked || !document.body) return
   const run = () => {
     let checked = 0
-    for (const el of document.body.querySelectorAll<HTMLElement>('*')) {
-      if (checked++ > BG_SCAN_LIMIT) break
-      if (el.hasAttribute(STATE) || el.dataset.mfWatched === '1') continue
-      if (!backgroundUrl(el)) continue
-      el.dataset.mfWatched = '1'
-      backgroundObserver.observe(el)
+    for (const r of allRoots(document.body)) {
+      for (const el of r.querySelectorAll<HTMLElement>('*')) {
+        if (checked++ > BG_SCAN_LIMIT) return
+        if (el.hasAttribute(STATE) || el.dataset.mfWatched === '1') continue
+        if (!backgroundUrl(el)) continue
+        el.dataset.mfWatched = '1'
+        backgroundObserver.observe(el)
+      }
     }
   }
   const idle = window.requestIdleCallback as typeof window.requestIdleCallback | undefined
@@ -336,12 +381,31 @@ const scanBackgrounds = debounce(() => {
 
 /* ------------------------------ תצפית על העמוד ------------------------------ */
 
+/**
+ * אוסף את שורש המסמך וכל ה-shadow roots הפתוחים שמתחתיו.
+ * אתרי מסחר רבים בונים כרטיסי מוצר כ-web components, ו-querySelectorAll רגיל
+ * לא חודר לתוכם — התמונות שם היו נשארות בלי בדיקה.
+ */
+function allRoots(scope: ParentNode): ParentNode[] {
+  const roots: ParentNode[] = [scope]
+  const elements = scope instanceof Element ? [scope] : []
+  elements.push(...Array.from(scope.querySelectorAll?.('*') ?? []))
+  for (const el of elements) {
+    const shadow = (el as Element).shadowRoot
+    if (shadow) roots.push(...allRoots(shadow))
+  }
+  return roots
+}
+
 function scanImages(scope: ParentNode): void {
   if (scope instanceof HTMLImageElement) {
     watchImage(scope)
     return
   }
-  scope.querySelectorAll?.('img').forEach((img) => watchImage(img as HTMLImageElement))
+  for (const r of allRoots(scope)) {
+    applyPendingStyles(r)
+    r.querySelectorAll?.('img').forEach((img) => watchImage(img as HTMLImageElement))
+  }
 }
 
 const rescanText = debounce(scanText, 600)
@@ -358,12 +422,23 @@ function startObserving(): void {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) scanImages(node as Element)
         })
-      } else if (mutation.type === 'attributes' && mutation.target instanceof HTMLImageElement) {
-        const img = mutation.target
+      } else if (mutation.type === 'attributes') {
+        // שינוי על <source> בתוך <picture> משפיע על התמונה האחות — מפנים אליה.
+        const target = mutation.target
+        const img =
+          target instanceof HTMLImageElement
+            ? target
+            : target instanceof HTMLSourceElement
+              ? target.parentElement?.querySelector('img') ?? null
+              : null
+        if (!img) continue
+
         // אם האתר החזיר את ה-src המקורי אחרי שחסמנו — חוסמים שוב.
         if (img.getAttribute(STATE) === 'blocked' && img.src !== PLACEHOLDER) {
           blockImage(img)
         } else if (img.getAttribute(STATE) === 'safe') {
+          // הסרת הסימון מחזירה את התמונה למצב "ממתינה" באותו רגע, לפני ציור
+          // מחדש — כך החלפת תמונה בגלריה לא חושפת את המקור החדש.
           img.removeAttribute(STATE)
           delete img.dataset.mfWatched
           watchImage(img)
@@ -394,7 +469,8 @@ async function init(): Promise<void> {
     return
   }
 
-  if (!settings.hideUntilChecked) stopHidingPending()
+  if (settings.hideUntilChecked) setPendingStyle(settings.pendingStyle)
+  else stopHidingPending()
 
   if (
     hostMatches(host, BUILTIN_BLOCKED_DOMAINS) ||

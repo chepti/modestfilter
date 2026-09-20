@@ -69,13 +69,22 @@
 
         <div class="toggle-row">
           <span class="text">
-            <strong>הסתרת תמונות עד סיום הבדיקה</strong>
+            <strong>טיפול בתמונות עד סיום הבדיקה</strong>
             <span>מונע הבזק של תוכן לפני שהמסנן הספיק לפעול.</span>
           </span>
           <label class="switch">
             <input type="checkbox" id="hideUntilChecked" /><span class="track"></span>
           </label>
         </div>
+
+        <label class="field">
+          <span class="label-row">איך נראית תמונה שטרם נבדקה</span>
+          <select id="pendingStyle">
+            <option value="blur">טשטוש חזק — רואים שיש תמונה, לא רואים מה בה</option>
+            <option value="hidden">הסתרה מלאה — המקום נשאר ריק עד שהבדיקה מסתיימת</option>
+          </select>
+          <span class="hint">שתי האפשרויות מונעות חשיפה. הסתרה מלאה משנה פחות את מראה העמוד בזמן הטעינה.</span>
+        </label>
 
         <div class="toggle-row">
           <span class="text">

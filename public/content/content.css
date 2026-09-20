@@ -1,9 +1,18 @@
 /* סגנונות שמוזרקים לכל עמוד. כל השמות בתחילית mf- כדי לא להתנגש באתר עצמו. */
 
-/* הסתרת תמונות עד שהבדיקה הסתיימה — מונע הבזק של תוכן לא מסונן.
-   המחלקה מוסרת מיד אם המשתמש כיבה את האפשרות. */
-html.mf-hide-pending img:not([data-mf-state]),
-html.mf-hide-pending video:not([data-mf-state]) {
+/* תמונה שטרם נבדקה. שני מצבים לבחירת המשתמש — טשטוש (ברירת מחדל) או הסתרה
+   מלאה. הכלל חל גם על אלמנטים עם background-image בסגנון מוטבע, כי גלריות
+   מוצר רבות מציגות כך את התמונה הראשית.
+   video לא נכלל: התוסף אינו סורק וידאו, והסתרתו הייתה משאירה אותו נעלם לתמיד. */
+html.mf-pending-blur img:not([data-mf-state]),
+html.mf-pending-blur [style*='background-image']:not([data-mf-state]) {
+  filter: blur(26px) grayscale(1) contrast(0.4) brightness(1.3) !important;
+  /* חיתוך השוליים מונע מהטשטוש לדלוף מחוץ לגבולות האלמנט */
+  clip-path: inset(0) !important;
+}
+
+html.mf-pending-hidden img:not([data-mf-state]),
+html.mf-pending-hidden [style*='background-image']:not([data-mf-state]) {
   visibility: hidden !important;
 }
 

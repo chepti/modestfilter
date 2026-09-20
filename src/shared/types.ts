@@ -26,8 +26,10 @@ export interface Settings {
   drawingWeight: number
   /** תמונות קטנות מזה (רוחב או גובה בפיקסלים) לא נבדקות — אייקונים, לוגואים. */
   minImageSize: number
-  /** להסתיר כל תמונה עד שהבדיקה הסתיימה, כדי למנוע הבזק. */
+  /** לטפל בכל תמונה עד שהבדיקה הסתיימה, כדי למנוע הבזק של תוכן לא מסונן. */
   hideUntilChecked: boolean
+  /** איך נראית תמונה שטרם נבדקה: טשטוש חזק, או הסתרה מלאה. */
+  pendingStyle: 'blur' | 'hidden'
   /** אם לא ניתן היה לבדוק תמונה — לחסום אותה בכל זאת. */
   blockOnError: boolean
   textFilterEnabled: boolean
@@ -50,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   drawingWeight: 0,
   minImageSize: 48,
   hideUntilChecked: true,
+  pendingStyle: 'blur',
   blockOnError: false,
   textFilterEnabled: true,
   textHitsToBlock: 4,

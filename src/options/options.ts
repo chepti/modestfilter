@@ -10,6 +10,7 @@ const fields = {
   drawingWeight: $<HTMLInputElement>('drawingWeight'),
   minImageSize: $<HTMLInputElement>('minImageSize'),
   hideUntilChecked: $<HTMLInputElement>('hideUntilChecked'),
+  pendingStyle: $<HTMLSelectElement>('pendingStyle'),
   blockOnError: $<HTMLInputElement>('blockOnError'),
   textFilterEnabled: $<HTMLInputElement>('textFilterEnabled'),
   textHitsToBlock: $<HTMLInputElement>('textHitsToBlock'),
@@ -47,6 +48,7 @@ function fill(settings: Settings): void {
   fields.drawingWeight.value = String(settings.drawingWeight)
   fields.minImageSize.value = String(settings.minImageSize)
   fields.hideUntilChecked.checked = settings.hideUntilChecked
+  fields.pendingStyle.value = settings.pendingStyle
   fields.blockOnError.checked = settings.blockOnError
   fields.textFilterEnabled.checked = settings.textFilterEnabled
   fields.textHitsToBlock.value = String(settings.textHitsToBlock)
@@ -64,6 +66,7 @@ function collect(): Partial<Settings> {
     drawingWeight: Number(fields.drawingWeight.value),
     minImageSize: Math.max(16, Number(fields.minImageSize.value) || DEFAULT_SETTINGS.minImageSize),
     hideUntilChecked: fields.hideUntilChecked.checked,
+    pendingStyle: fields.pendingStyle.value === 'hidden' ? 'hidden' : 'blur',
     blockOnError: fields.blockOnError.checked,
     textFilterEnabled: fields.textFilterEnabled.checked,
     textHitsToBlock: Math.max(1, Number(fields.textHitsToBlock.value) || DEFAULT_SETTINGS.textHitsToBlock),

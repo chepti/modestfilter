@@ -1,0 +1,108 @@
+body {
+  width: 320px;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.head .icon {
+  width: 24px;
+  height: 24px;
+  color: var(--brand);
+}
+
+.head h1 {
+  font-size: 16px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row:last-of-type {
+  border-bottom: none;
+}
+
+.row .name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink-soft);
+}
+
+.row .name .icon {
+  width: 17px;
+  height: 17px;
+  color: var(--ink-mute);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 14px 0 4px;
+  text-align: center;
+}
+
+.stats div {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 9px 4px;
+}
+
+.stats strong {
+  display: block;
+  font-size: 17px;
+}
+
+.stats span {
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-top: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-mute);
+  flex: none;
+}
+
+.dot.ok {
+  background: var(--ok);
+}
+
+.dot.bad {
+  background: var(--danger);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.actions .btn {
+  flex: 1;
+  justify-content: center;
+}

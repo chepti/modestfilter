@@ -1,0 +1,29 @@
+{
+  "name": "modesty-filter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "תוסף דפדפן לסינון תוכן לא צנוע — זיהוי תמונות עם NSFWJS וסינון טקסט",
+  "type": "module",
+  "scripts": {
+    "postinstall": "node scripts/fetch-model.mjs",
+    "model": "node scripts/fetch-model.mjs",
+    "build": "npm run build:pages && npm run build:content",
+    "build:pages": "vite build",
+    "build:content": "vite build --config vite.content.config.ts",
+    "dev": "npm run build -- --watch",
+    "devtest": "vite build --config vite.devtest.config.ts --outDir ../../dist-test --emptyOutDir",
+    "devtest:serve": "npm run devtest && node scripts/serve-devtest.mjs",
+    "typecheck": "tsc --noEmit",
+    "icons": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icons.ps1",
+    "zip": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-zip.ps1"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "nsfwjs": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

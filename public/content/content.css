@@ -1,0 +1,110 @@
+/* סגנונות שמוזרקים לכל עמוד. כל השמות בתחילית mf- כדי לא להתנגש באתר עצמו. */
+
+/* הסתרת תמונות עד שהבדיקה הסתיימה — מונע הבזק של תוכן לא מסונן.
+   המחלקה מוסרת מיד אם המשתמש כיבה את האפשרות. */
+html.mf-hide-pending img:not([data-mf-state]),
+html.mf-hide-pending video:not([data-mf-state]) {
+  visibility: hidden !important;
+}
+
+/* תמונה שנחסמה: המקור כבר הוחלף בפלייסהולדר, כאן רק העטיפה הוויזואלית. */
+img[data-mf-state='blocked'] {
+  visibility: visible !important;
+  object-fit: contain !important;
+  background-color: #eef1f6 !important;
+  border-radius: 10px !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+  filter: none !important;
+}
+
+/* רקע תמונה שנחסם */
+[data-mf-state='blocked-bg'] {
+  background-image: none !important;
+  background-color: #eef1f6 !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+/* מסך חסימת עמוד שלם */
+#mf-page-block {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f7fb;
+  direction: rtl;
+  font-family: 'Segoe UI', 'Assistant', system-ui, -apple-system, sans-serif;
+}
+
+#mf-page-block .mf-card {
+  max-width: 460px;
+  padding: 40px 36px 28px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+#mf-page-block .mf-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  color: #3b5bdb;
+}
+
+#mf-page-block h1 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+}
+
+#mf-page-block p {
+  margin: 0 0 22px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+#mf-page-block .mf-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#mf-page-block button {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+#mf-page-block .mf-primary {
+  background: #3b5bdb;
+  color: #fff;
+}
+
+#mf-page-block .mf-primary:hover {
+  background: #2f4bbd;
+}
+
+#mf-page-block .mf-secondary {
+  background: #fff;
+  color: #374151;
+  border-color: #d5d9e2;
+}
+
+#mf-page-block .mf-secondary:hover {
+  border-color: #aeb6c6;
+}
+
+#mf-page-block .mf-note {
+  margin: 18px 0 0;
+  font-size: 12px;
+  color: #9aa1ad;
+}

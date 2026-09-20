@@ -1,0 +1,233 @@
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --ink: #111827;
+  --ink-soft: #5b6472;
+  --ink-mute: #9aa1ad;
+  --line: #e3e7ef;
+  --brand: #3b5bdb;
+  --brand-dark: #2f4bbd;
+  --brand-soft: #eef2ff;
+  --danger: #d6336c;
+  --ok: #2b8a3e;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', 'Assistant', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-weight: 600;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+/* כפתורים — תמיד pill */
+.btn {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--brand-dark);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-color: var(--line);
+}
+
+.btn-ghost:hover {
+  border-color: #b9c0cf;
+  color: var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* מתג הפעלה */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+  flex: none;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch .track {
+  position: absolute;
+  inset: 0;
+  background: #cfd5e0;
+  border-radius: 999px;
+  transition: background-color 0.18s ease;
+}
+
+.switch .track::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.18s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+}
+
+.switch input:checked + .track {
+  background: var(--brand);
+}
+
+.switch input:checked + .track::before {
+  transform: translateX(-20px);
+}
+
+.switch input:focus-visible + .track {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* שדות */
+label.field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.field > .label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+input[type='number'],
+input[type='text'],
+textarea,
+select {
+  font: inherit;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--brand);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+
+.hint {
+  color: var(--ink-mute);
+  font-size: 12px;
+}
+
+/* פוטר קבוע */
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+
+.site-footer .credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.site-footer .credit .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.site-footer .btn {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+.site-footer .btn .icon {
+  width: 14px;
+  height: 14px;
+}

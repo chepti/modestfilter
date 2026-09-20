@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "devtest",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "devtest:serve"],
+      "port": 5177
+    }
+  ]
+}

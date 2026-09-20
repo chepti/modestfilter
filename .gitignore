@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-test/
+*.zip
+
+# המודל נמשך בזמן הבנייה (npm run model) ולא נשמר בגיט — כ-4.3MB
+public/models/
+
+# הגדרות מקומיות של Claude Code (הרשאות) — launch.json כן נשמר
+.claude/settings*.json
